@@ -8,7 +8,9 @@ import {
   Input,
   Select,
   Popconfirm,
-  Space
+  Space,
+  Row,
+  Col
 } from "antd";
 import { useEffect, useState } from "react";
 import api from "../API/axios";
@@ -24,6 +26,7 @@ const Home = () => {
 
   const [open, setOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
+  const [viewDetails, setViewDetails] = useState(null);
   const [form] = Form.useForm();
 
   const [params, setParams] = useState({
@@ -122,12 +125,29 @@ const Home = () => {
     }
   };
 
+  const handleViewDetails = (record) => {
+    setViewDetails(record);
+  };
+
   const columns = [
-    { title: "Name", dataIndex: "name", key: "name", sorter: true },
+     {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      sorter: true,
+      render: (text, record) => (
+        <u
+          style={{ cursor: "pointer" }}
+          onClick={() => handleViewDetails(record)}
+        >
+          {text}
+        </u>
+      ),
+    },
     { title: "City", dataIndex: "city", key: "city" },
     { title: "Address", dataIndex: "address", key: "address" },
     {
-      title: "Customer Type Name",
+      title: "Customer Type",
       dataIndex: "customerTypeName",
       key: "customerTypeName",
     },
@@ -157,7 +177,9 @@ const Home = () => {
   return (
     <section style={{ margin: "50px" }}>
       <Flex gap="middle" vertical>
-        {errors && <Alert type="error" message={errors} />}
+        {errors?.length > 0 && (
+          <Alert type="error" message={errors?.join(", ")} closable />
+        )}
 
         <Flex justify="space-between">
           <h2>Customers List ({data.totalCount})</h2>
@@ -183,7 +205,7 @@ const Home = () => {
             current: params.pageNumber,
             pageSize: params.pageSize,
             total: data.totalCount,
-            showSizeChanger: true,
+            // showSizeChanger: true,
           }}
           onChange={handleTableChange}
         />
@@ -216,7 +238,7 @@ const Home = () => {
             </Form.Item>
 
             <Form.Item name="state" label="State">
-              <Input maxLength={2} />
+              <Input  />
             </Form.Item>
 
             <Form.Item name="zip" label="Zip">
@@ -241,6 +263,30 @@ const Home = () => {
               {editingCustomer ? "Update Customer" : "Save Customer"}
             </Button>
           </Form>
+        </Modal>
+        <Modal
+          title={"View Customer Details"}
+          open={!!viewDetails}
+          onCancel={() => {
+            setViewDetails(null);
+          }}
+          footer={null}
+          closable={false}
+        >
+          <Row>
+            {viewDetails &&
+              columns?.slice(0, 7)?.map((col) => (
+                <Col span={12}>
+                  <div>
+                    <h3>{col.title}</h3>
+                    <p>{viewDetails[col.dataIndex]}</p>
+                  </div>
+                </Col>
+              ))}
+          </Row>
+          <Button type="primary" onClick={() => setViewDetails(null)} block>
+            Close
+          </Button>
         </Modal>
         </Flex>
     </section>
